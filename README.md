@@ -28,6 +28,24 @@ Navigate to your git repository and run:
 pr-comments
 ```
 
+### Command Line Options
+
+```
+Options:
+  -d, --dir <path>    Specify the git repository directory (default: current directory)
+  -h, --help          Show this help message
+```
+
+Examples:
+
+```bash
+# Show help
+pr-comments --help
+
+# Check PR comments in a specific directory
+pr-comments --dir /path/to/repo
+```
+
 The tool will:
 1. Detect your current branch
 2. Find the associated pull request
@@ -40,6 +58,38 @@ The tool will:
 - Shows file path and line numbers when available
 - Includes diff context when available
 - Works with GitHub repositories
+
+## Using with LLM Tools
+
+PR Comments CLI works great with AI coding assistants like Windsurf and Cursor. Here's how you can integrate it into your workflow:
+
+### Windsurf Integration
+
+When working with Windsurf, you can run PR Comments CLI to quickly see what feedback you need to address in your current PR. This allows you to:
+
+1. View all unresolved comments in one place without switching context
+2. Ask Windsurf to help you implement changes based on the PR feedback
+3. Iterate on your code with AI assistance while addressing reviewer comments
+
+### Cursor Integration
+
+In Cursor, you can:
+
+1. Run PR Comments CLI in the terminal to see all unresolved comments
+2. Use Cursor's AI capabilities to help implement the suggested changes
+3. Resolve comments directly from your editor after making the necessary changes
+
+### General LLM Workflow
+
+A typical workflow might look like:
+
+1. Run `pr-comments` to see all unresolved feedback
+2. Ask your AI assistant to help you understand and implement the suggested changes
+3. Make the necessary code modifications with AI assistance
+4. Run tests to ensure your changes work as expected
+5. Push your changes and mark the comments as resolved
+
+This workflow helps you leverage AI tools to more efficiently address code review feedback, improving both productivity and code quality.
 
 ## Requirements
 
