@@ -63,21 +63,8 @@ The tool will:
 
 PR Comments CLI works great with AI coding assistants like Windsurf and Cursor. Here's how you can integrate it into your workflow:
 
-### Windsurf Integration
+Simply ask Windsurf or Cursor to run `pr-comments` to get a list of all unresolved PR comments. and to organize and work through them
 
-When working with Windsurf, you can run PR Comments CLI to quickly see what feedback you need to address in your current PR. This allows you to:
-
-1. View all unresolved comments in one place without switching context
-2. Ask Windsurf to help you implement changes based on the PR feedback
-3. Iterate on your code with AI assistance while addressing reviewer comments
-
-### Cursor Integration
-
-In Cursor, you can:
-
-1. Run PR Comments CLI in the terminal to see all unresolved comments
-2. Use Cursor's AI capabilities to help implement the suggested changes
-3. Resolve comments directly from your editor after making the necessary changes
 
 ### General LLM Workflow
 
