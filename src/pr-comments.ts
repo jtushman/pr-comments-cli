@@ -6,6 +6,7 @@ import { promisify } from 'util'
 import { highlight } from 'cli-highlight'
 import { existsSync } from 'fs'
 import path from 'path'
+import arg from 'arg'
 
 import { config } from 'dotenv'
 
@@ -55,21 +56,18 @@ interface ReviewThread {
 
 // Parse command line arguments
 function parseArgs() {
-  const args = process.argv.slice(2)
-  let directory = process.cwd()
-  
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--dir' || args[i] === '-d') {
-      if (i + 1 < args.length) {
-        const dirPath = path.resolve(args[i + 1])
-        if (existsSync(dirPath)) {
-          directory = dirPath
-        } else {
-          console.error(`Error: Directory not found: ${dirPath}`)
-          process.exit(1)
-        }
-      }
-    } else if (args[i] === '--help' || args[i] === '-h') {
+  try {
+    const args = arg({
+      // Types
+      '--dir': String,
+      '--help': Boolean,
+      
+      // Aliases
+      '-d': '--dir',
+      '-h': '--help',
+    })
+    
+    if (args['--help']) {
       console.log(`
 PR Comments CLI
 
@@ -82,9 +80,29 @@ Options:
       `)
       process.exit(0)
     }
+    
+    let directory = process.cwd()
+    
+    if (args['--dir']) {
+      const dirPath = path.resolve(args['--dir'])
+      if (existsSync(dirPath)) {
+        directory = dirPath
+      } else {
+        console.error(`Error: Directory not found: ${dirPath}`)
+        process.exit(1)
+      }
+    }
+    
+    return { directory }
+  } catch (err: any) {
+    // arg library throws errors with specific properties
+    if (err.code === 'ARG_UNKNOWN_OPTION' && err.unknown) {
+      console.error(`Error: Unknown option: ${err.unknown}`)
+    } else {
+      console.error(`Error: ${err.message || 'Unknown error'}`)
+    }
+    process.exit(1)
   }
-  
-  return { directory }
 }
 
 async function getCurrentBranch(directory: string): Promise<string> {
@@ -253,8 +271,8 @@ async function main() {
       console.log('─'.repeat(50))
       console.log() // Empty line between comments
     })
-  } catch {
-    console.error('Error:', 'Unknown error')
+  } catch (err: any) {
+    console.error('Error:', err.message || 'Unknown error')
     process.exit(1)
   }
 }
