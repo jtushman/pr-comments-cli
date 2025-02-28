@@ -6,7 +6,7 @@
   "main": "dist/pr-comments.js",
   "types": "dist/pr-comments.d.ts",
   "bin": {
-    "pr-comments": "./dist/pr-comments.js"
+    "pr-comments": "dist/pr-comments.js"
   },
   "repository": {
     "type": "git",
