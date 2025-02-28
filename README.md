@@ -1,6 +1,6 @@
 # PR Comments CLI
 
-A command-line tool to fetch and display unresolved GitHub PR comments for the current branch.
+A command-line tool to fetch and display unresolved GitHub PR comments for the current branch.  Super usefule for LLM software development workflows.  Or just to see a nice command line view of whats going on.
 
 ## Installation
 
