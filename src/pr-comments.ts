@@ -3,6 +3,10 @@
 import { exec } from 'child_process'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
+import { highlight } from 'cli-highlight'
+import { existsSync } from 'fs'
+import path from 'path'
+import arg from 'arg'
 
 import { config } from 'dotenv'
 
@@ -50,22 +54,73 @@ interface ReviewThread {
   }
 }
 
-async function getCurrentBranch(): Promise<string> {
+// Parse command line arguments
+function parseArgs() {
   try {
-    const { stdout } = await execAsync('git rev-parse --abbrev-ref HEAD')
+    const args = arg({
+      // Types
+      '--dir': String,
+      '--help': Boolean,
+      
+      // Aliases
+      '-d': '--dir',
+      '-h': '--help',
+    })
+    
+    if (args['--help']) {
+      console.log(`
+PR Comments CLI
+
+Usage:
+  pr-comments [options]
+
+Options:
+  -d, --dir <path>    Specify the git repository directory (default: current directory)
+  -h, --help          Show this help message
+      `)
+      process.exit(0)
+    }
+    
+    let directory = process.cwd()
+    
+    if (args['--dir']) {
+      const dirPath = path.resolve(args['--dir'])
+      if (existsSync(dirPath)) {
+        directory = dirPath
+      } else {
+        console.error(`Error: Directory not found: ${dirPath}`)
+        process.exit(1)
+      }
+    }
+    
+    return { directory }
+  } catch (err: any) {
+    // arg library throws errors with specific properties
+    if (err.code === 'ARG_UNKNOWN_OPTION' && err.unknown) {
+      console.error(`Error: Unknown option: ${err.unknown}`)
+    } else {
+      console.error(`Error: ${err.message || 'Unknown error'}`)
+    }
+    process.exit(1)
+  }
+}
+
+async function getCurrentBranch(directory: string): Promise<string> {
+  try {
+    const { stdout } = await execAsync(`git -C "${directory}" rev-parse --abbrev-ref HEAD`)
     return stdout.trim()
   } catch {
     throw new Error('Failed to get current branch name')
   }
 }
 
-async function getPRComments(): Promise<PRComment[]> {
+async function getPRComments(directory: string): Promise<PRComment[]> {
   try {
     // Get current branch
-    const branch = await getCurrentBranch()
+    const branch = await getCurrentBranch(directory)
 
     // Get repository info from git remote
-    const { stdout: remoteUrl } = await execAsync('git config --get remote.origin.url')
+    const { stdout: remoteUrl } = await execAsync(`git -C "${directory}" config --get remote.origin.url`)
     const repoPath = remoteUrl
       .trim()
       .replace('git@github.com:', '')
@@ -173,7 +228,8 @@ async function getPRComments(): Promise<PRComment[]> {
 // Main function for CLI usage
 async function main() {
   try {
-    const comments = await getPRComments()
+    const { directory } = parseArgs()
+    const comments = await getPRComments(directory)
 
     if (comments.length === 0) {
       console.log("No comments found for the current branch's PR.")
@@ -199,9 +255,14 @@ async function main() {
         // Show diff context if available
         if (comment.diff_hunk) {
           console.log('Context:')
-          console.log('```')
-          console.log(comment.diff_hunk)
-          console.log('```')
+          
+          // Determine language from file extension
+          const fileExt = comment.path.split('.').pop() || ''
+          const language = fileExt || 'diff'
+          
+          // Apply syntax highlighting
+          const highlightedCode = highlight(comment.diff_hunk, { language })
+          console.log(highlightedCode)
         }
       }
 
@@ -210,8 +271,8 @@ async function main() {
       console.log('─'.repeat(50))
       console.log() // Empty line between comments
     })
-  } catch {
-    console.error('Error:', 'Unknown error')
+  } catch (err: any) {
+    console.error('Error:', err.message || 'Unknown error')
     process.exit(1)
   }
 }
